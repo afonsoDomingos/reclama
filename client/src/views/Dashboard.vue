@@ -1,3 +1,4 @@
+<script setup>
 import { ref, onMounted } from 'vue';
 import { AlertTriangle, CheckCircle, Clock, BarChart3 } from 'lucide-vue-next';
 import StatsCard from '../components/StatsCard.vue';
