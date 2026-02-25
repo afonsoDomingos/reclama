@@ -3,12 +3,26 @@ import {
   LayoutDashboard, 
   Ticket, 
   Users, 
-  Settings 
+  Settings,
+  LogOut 
 } from 'lucide-vue-next';
 import { useRouter, useRoute } from 'vue-router';
+import { ref, onMounted } from 'vue';
 
 const router = useRouter();
 const route = useRoute();
+
+const user = ref({
+  name: 'Usuário',
+  role: 'Gestor'
+});
+
+onMounted(() => {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    user.value = JSON.parse(storedUser);
+  }
+});
 
 const menuItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -19,6 +33,12 @@ const menuItems = [
 
 const navigate = (path) => {
   router.push(path);
+};
+
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  router.push('/login');
 };
 
 const isActive = (path) => {
@@ -57,15 +77,23 @@ const isActive = (path) => {
       </a>
     </nav>
 
-    <div class="p-4 border-t border-slate-800">
-      <button class="flex items-center gap-3 w-full hover:bg-slate-800 p-2 rounded-lg transition-colors">
+    <div class="p-4 border-t border-slate-800 space-y-2">
+      <div class="flex items-center gap-3 w-full p-2 rounded-lg">
         <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold ring-2 ring-slate-900 ring-offset-2 ring-offset-blue-500">
-          AD
+          {{ user.name.substring(0, 2).toUpperCase() }}
         </div>
-        <div class="text-left">
-          <p class="text-sm font-medium text-white">Admin User</p>
-          <p class="text-xs text-slate-500">Gestor</p>
+        <div class="text-left flex-1 overflow-hidden">
+          <p class="text-sm font-medium text-white truncate">{{ user.name }}</p>
+          <p class="text-xs text-slate-500 capitalize">{{ user.role }}</p>
         </div>
+      </div>
+      
+      <button 
+        @click="handleLogout"
+        class="flex items-center gap-3 w-full px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 group"
+      >
+        <LogOut :size="20" class="group-hover:rotate-12 transition-transform" />
+        <span class="font-medium">Sair</span>
       </button>
     </div>
   </div>

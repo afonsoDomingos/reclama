@@ -6,8 +6,8 @@ const connectDB = require('./config/db');
 // Load env vars
 dotenv.config();
 
-// Connect to database (Disabled for Mock Mode)
-// connectDB();
+// Connect to database
+connectDB();
 
 const app = express();
 
@@ -17,6 +17,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/tickets', require('./routes/ticketRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
 
 const PORT = process.env.PORT || 5000;
 

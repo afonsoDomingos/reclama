@@ -1,42 +1,5 @@
 const Ticket = require('../models/Ticket');
 
-// In-memory store for development without MongoDB
-let tickets = [
-    {
-        _id: "1",
-        title: "Sem luz na Rua A",
-        description: "Estamos sem energia há 4 horas.",
-        category: "Interrupção de Energia",
-        urgency: "high",
-        sentiment: "negative",
-        priorityScore: 5,
-        status: "new",
-        createdAt: new Date().toISOString()
-    },
-    {
-        _id: "2",
-        title: "Cobrança indevida na fatura",
-        description: "Veio um valor de 500 reais a mais.",
-        category: "Cobrança",
-        urgency: "medium",
-        sentiment: "negative",
-        priorityScore: 3,
-        status: "in_progress",
-        createdAt: new Date().toISOString()
-    },
-    {
-        _id: "3",
-        title: "Elogio ao atendimento",
-        description: "Muito obrigado pela rapidez.",
-        category: "Atendimento",
-        urgency: "low",
-        sentiment: "positive",
-        priorityScore: 1,
-        status: "resolved",
-        createdAt: new Date().toISOString()
-    }
-];
-
 // Mock Classification Logic
 const classifyTicket = (text) => {
     const lowerText = text.toLowerCase();
@@ -94,18 +57,14 @@ exports.createTicket = async (req, res) => {
 
         const classification = classifyTicket(`${title} ${description}`);
 
-        const newTicket = {
-            _id: Math.random().toString(36).substr(2, 9),
+        const newTicket = await Ticket.create({
             title,
             description,
             source: source || 'form',
             contactEmail,
             status: 'new',
-            ...classification,
-            createdAt: new Date().toISOString()
-        };
-
-        tickets.push(newTicket);
+            ...classification
+        });
 
         res.status(201).json({
             success: true,
@@ -120,13 +79,12 @@ exports.createTicket = async (req, res) => {
 // @desc    Get all tickets
 exports.getTickets = async (req, res) => {
     try {
-        // Sort by priorityScore desc
-        const sortedTickets = [...tickets].sort((a, b) => b.priorityScore - a.priorityScore);
+        const tickets = await Ticket.find().sort({ priorityScore: -1, createdAt: -1 });
 
         res.status(200).json({
             success: true,
-            count: sortedTickets.length,
-            data: sortedTickets
+            count: tickets.length,
+            data: tickets
         });
     } catch (err) {
         res.status(500).json({ success: false, error: 'Server Error' });
@@ -136,20 +94,19 @@ exports.getTickets = async (req, res) => {
 // @desc    Get dashboard stats
 exports.getStats = async (req, res) => {
     try {
-        const total = tickets.length;
-        const highUrgency = tickets.filter(t => t.urgency === 'high').length;
-        const negativeSentiment = tickets.filter(t => t.sentiment === 'negative').length;
+        const total = await Ticket.countDocuments();
+        const highUrgency = await Ticket.countDocuments({ urgency: 'high' });
+        const negativeSentiment = await Ticket.countDocuments({ sentiment: 'negative' });
 
         // Group by Category
-        const categoryCounts = tickets.reduce((acc, t) => {
-            acc[t.category] = (acc[t.category] || 0) + 1;
-            return acc;
-        }, {});
-
-        const byCategory = Object.keys(categoryCounts).map(key => ({
-            _id: key,
-            count: categoryCounts[key]
-        }));
+        const byCategory = await Ticket.aggregate([
+            {
+                $group: {
+                    _id: "$category",
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
 
         res.status(200).json({
             success: true,
