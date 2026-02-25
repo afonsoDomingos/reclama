@@ -1,29 +1,26 @@
-# Plataforma Reclama
+# Reclama.AI - Gestão Inteligente de Reclamações
 
-## Como rodar o projeto
+**Reclama.AI** é uma plataforma SaaS moderna desenvolvida para empresas de serviços essenciais (Água, Energia, Telecomunicações) que buscam transformar o atendimento ao cliente através de inteligência e automação.
 
-### Pré-requisitos
-*   Node.js instalado
-*   MongoDB rodando (local ou Atlas)
+## 🚀 Funcionalidades Principais
+*   **Classificação Automática**: Utiliza lógica de NLP para categorizar reclamações no momento do registro.
+*   **Análise de Sentimento**: Detecta tons negativos e urgência para priorização imediata.
+*   **Priorização Inteligente**: Gera um Score de Prioridade (1-5) baseado na gravidade do problema.
+*   **Dashboard Executivo**: Métricas em tempo real sobre o volume de tickets e saúde do atendimento.
+*   **Persistência em Nuvem**: Totalmente integrado ao MongoDB Atlas.
+*   **Segurança**: Autenticação robusta via JWT (JSON Web Tokens).
 
-### 1. Backend (API)
-```bash
-cd server
-npm install
-# Certifique-se que o MongoDB está rodando ou configure .env
-npm start
-```
-O servidor rodará em `http://localhost:5000`.
+## 🛠️ Stack Tecnológica
+*   **Frontend**: Vue.js 3, TailwindCSS, Lucide Icons, Vite.
+*   **Backend**: Node.js, Express, Mongoose.
+*   **Banco de Dados**: MongoDB Atlas.
+*   **Deploy**: Vercel (Frontend) & Render (Backend).
 
-### 2. Frontend (Dashboard)
-```bash
-cd client
-npm install
-npm run dev
-```
-O frontend rodará em `http://localhost:5173`.
+## 🔑 Credenciais para Demonstração
+Para testar a plataforma no ambiente de produção:
+*   **URL**: [https://reclama-murex.vercel.app](https://reclama-murex.vercel.app)
+*   **Email**: `admin@reclama.com`
+*   **Senha**: `@Admin123@`
 
-## Funcionalidades
-*   Classificação automática de tickets (Mock AI).
-*   Dashboard de métricas.
-*   Priorização inteligente.
+---
+*Desenvolvido como parte da Maratona de 15 Projetos.*
