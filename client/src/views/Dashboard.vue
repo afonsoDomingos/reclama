@@ -7,19 +7,84 @@ import api from '../api';
 const stats = ref({
   total: 0,
   highUrgency: 0,
-  negativeSentiment: 0
+  negativeSentiment: 0,
+  byCategory: []
 });
 
 const tickets = ref([]);
+
+// Chart Options
+const categoryChartOptions = ref({
+  chart: { type: 'donut' },
+  labels: [],
+  colors: ['#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#10b981'],
+  legend: { position: 'bottom' },
+  dataLabels: { enabled: false },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '70%',
+        labels: {
+          show: true,
+          total: {
+            show: true,
+            label: 'Total',
+            formatter: (w) => stats.value.total
+          }
+        }
+      }
+    }
+  }
+});
+
+const categoryChartSeries = ref([]);
+
+const trendChartOptions = ref({
+  chart: { 
+    type: 'area',
+    toolbar: { show: false },
+    sparkline: { enabled: false }
+  },
+  stroke: { curve: 'smooth', width: 2 },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.45,
+      opacityTo: 0.05,
+      stops: [20, 100, 100, 100]
+    }
+  },
+  xaxis: {
+    categories: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'],
+    labels: { show: true, style: { colors: '#94a3b8' } },
+    axisBorder: { show: false },
+    axisTicks: { show: false }
+  },
+  yaxis: { show: false },
+  grid: { show: false },
+  colors: ['#3b82f6'],
+  dataLabels: { enabled: false }
+});
+
+const trendChartSeries = ref([
+  { name: 'Chamados', data: [31, 40, 28, 51, 42, 109, 100] }
+]);
 
 const fetchStats = async () => {
   try {
     const res = await api.get('/tickets/stats');
     stats.value = res.data.data;
+    
+    // Update category chart
+    categoryChartSeries.value = stats.value.byCategory.map(c => c.count);
+    categoryChartOptions.value = {
+      ...categoryChartOptions.value,
+      labels: stats.value.byCategory.map(c => c._id)
+    };
   } catch (error) {
     console.error("Failed to fetch stats", error);
-    // Mock data for demo if backend offline
-    stats.value = { total: 124, highUrgency: 12, negativeSentiment: 45 };
+    stats.value = { total: 0, highUrgency: 0, negativeSentiment: 0, byCategory: [] };
   }
 };
 
@@ -34,6 +99,15 @@ const fetchTickets = async () => {
       { _id: 2, title: 'Cobrança indevida', category: 'Cobrança', priorityScore: 4, status: 'in_progress', sentiment: 'neutral' },
       { _id: 3, title: 'Elogio ao atendimento', category: 'Atendimento', priorityScore: 1, status: 'resolved', sentiment: 'positive' },
     ];
+  }
+};
+
+const updateStatus = async (id, newStatus) => {
+  try {
+    await api.put(`/tickets/${id}`, { status: newStatus });
+    await Promise.all([fetchTickets(), fetchStats()]); // Refresh both
+  } catch (err) {
+    console.error("Failed to update status", err);
   }
 };
 
@@ -100,10 +174,30 @@ const getPriorityColor = (score) => {
       />
     </div>
 
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+       <!-- Trend Chart -->
+       <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-slate-800">Tendência de Atendimento</h3>
+            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">Últimos 7 dias</span>
+          </div>
+          <apexchart height="300" :options="trendChartOptions" :series="trendChartSeries"></apexchart>
+       </div>
+
+       <!-- Category Chart -->
+       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h3 class="font-bold text-slate-800 mb-6">Por Categoria</h3>
+          <div class="flex justify-center items-center h-[300px]">
+            <apexchart width="100%" :options="categoryChartOptions" :series="categoryChartSeries"></apexchart>
+          </div>
+       </div>
+    </div>
+
     <!-- Recent Tickets -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-        <h3 class="font-bold text-slate-800">Reclamações Recentes</h3>
+      <div class="p-6 border-b border-slate-100 flex justify-between items-center text-slate-800">
+        <h3 class="font-bold">Reclamações Recentes</h3>
         <router-link to="/tickets" class="text-blue-600 text-sm font-medium hover:underline">Ver todas</router-link>
       </div>
       <div class="overflow-x-auto">
@@ -135,13 +229,27 @@ const getPriorityColor = (score) => {
               <td class="px-6 py-4">
                 <span :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   ticket.status === 'new' ? 'bg-blue-50 text-blue-700' : 
-                  ticket.status === 'resolved' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-700'
+                  ticket.status === 'resolved' ? 'bg-green-50 text-green-700' : 
+                  ticket.status === 'in_progress' ? 'bg-orange-50 text-orange-700' : 'bg-gray-100 text-gray-700'
                 }`">
-                  {{ ticket.status === 'new' ? 'Novo' : ticket.status }}
+                  {{ 
+                    ticket.status === 'new' ? 'Novo' : 
+                    ticket.status === 'resolved' ? 'Resolvido' : 
+                    ticket.status === 'in_progress' ? 'Em Atendimento' : ticket.status 
+                  }}
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
-                <button class="text-slate-400 hover:text-blue-600">Editar</button>
+                <select 
+                  :value="ticket.status" 
+                  @change="(e) => updateStatus(ticket._id, e.target.value)"
+                  class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="new">Novo</option>
+                  <option value="in_progress">Atendimento</option>
+                  <option value="resolved">Resolvido</option>
+                  <option value="closed">Fechado</option>
+                </select>
               </td>
             </tr>
           </tbody>

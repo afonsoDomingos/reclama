@@ -16,6 +16,16 @@ const fetchTickets = async () => {
     }
 };
 
+const updateStatus = async (id, newStatus) => {
+  try {
+    await api.put(`/tickets/${id}`, { status: newStatus });
+    await fetchTickets(); // Refresh list
+  } catch (err) {
+    console.error("Failed to update status", err);
+    alert("Erro ao atualizar status.");
+  }
+};
+
 onMounted(() => {
     fetchTickets();
 });
@@ -112,9 +122,16 @@ const getPriorityColor = (score) => {
                 {{ new Date(ticket.createdAt).toLocaleDateString() }}
               </td>
               <td class="px-6 py-4 text-right">
-                <button class="text-slate-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded-full transition-all">
-                   Editar
-                </button>
+                <select 
+                  :value="ticket.status" 
+                  @change="(e) => updateStatus(ticket._id, e.target.value)"
+                  class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="new">Novo</option>
+                  <option value="in_progress">Atendimento</option>
+                  <option value="resolved">Resolvido</option>
+                  <option value="closed">Fechado</option>
+                </select>
               </td>
             </tr>
           </tbody>
