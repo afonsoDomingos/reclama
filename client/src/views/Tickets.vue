@@ -3,13 +3,13 @@ import { ref } from 'vue';
 import { Filter, Search, Plus } from 'lucide-vue-next';
 
 import { onMounted } from 'vue';
-import axios from 'axios';
+import api from '../api';
 
 const tickets = ref([]);
 
 const fetchTickets = async () => {
     try {
-        const res = await axios.get('http://localhost:5000/api/tickets');
+        const res = await api.get('/tickets');
         tickets.value = res.data.data;
     } catch (e) {
         console.error(e);

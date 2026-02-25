@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../api';
 import { ArrowLeft, Save, Loader2 } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -21,8 +21,7 @@ const submitTicket = async () => {
   error.value = null;
   
   try {
-    // In production change URL to env variable
-    const response = await axios.post('http://localhost:5000/api/tickets', form.value);
+    const response = await api.post('/tickets', form.value);
     
     if (response.data.success) {
       // Navigate back to ticket list or dashboard

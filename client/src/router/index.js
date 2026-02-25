@@ -1,29 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import axios from 'axios';
 import Dashboard from '../views/Dashboard.vue';
 import Tickets from '../views/Tickets.vue';
 import Login from '../views/Login.vue';
-
-// Axios global config
-axios.interceptors.request.use(config => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
-
-axios.interceptors.response.use(
-    response => response,
-    error => {
-        if (error.response && error.response.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
-        }
-        return Promise.reject(error);
-    }
-);
 
 // Placeholder views
 const Team = { template: '<div class="p-8"><h1>Equipe (Em Construção)</h1></div>' };

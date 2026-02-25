@@ -1,8 +1,7 @@
-<script setup>
 import { ref, onMounted } from 'vue';
 import { AlertTriangle, CheckCircle, Clock, BarChart3 } from 'lucide-vue-next';
 import StatsCard from '../components/StatsCard.vue';
-import axios from 'axios';
+import api from '../api';
 
 const stats = ref({
   total: 0,
@@ -14,8 +13,7 @@ const tickets = ref([]);
 
 const fetchStats = async () => {
   try {
-    // In production this would be an env var
-    const res = await axios.get('http://localhost:5000/api/tickets/stats');
+    const res = await api.get('/tickets/stats');
     stats.value = res.data.data;
   } catch (error) {
     console.error("Failed to fetch stats", error);
@@ -26,7 +24,7 @@ const fetchStats = async () => {
 
 const fetchTickets = async () => {
   try {
-    const res = await axios.get('http://localhost:5000/api/tickets');
+    const res = await api.get('/tickets');
     tickets.value = res.data.data;
   } catch (error) {
     console.error("Failed to fetch tickets", error);

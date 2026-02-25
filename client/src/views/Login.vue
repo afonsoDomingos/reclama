@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../api';
 import { Lock, Mail, Loader2 } from 'lucide-vue-next';
 
 const router = useRouter();
